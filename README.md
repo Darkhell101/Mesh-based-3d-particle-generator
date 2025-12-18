@@ -37,4 +37,4 @@ With help from Grok and Qwen, common cubic crystal packings have been implemente
 
 ## 🙏 Acknowledgements
 - Conceptual inspiration: [OpenCAX](https://opencax.cn/)  
-- Model data & visualization: **Tao Pan** (Rhino, CQU MD)
+- Model data & visualization: [**Tao Pan**](1937263714@qq.com) (Rhino, CQU MD, 1937263714@qq.com)
