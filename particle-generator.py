@@ -102,15 +102,37 @@ def generate_bcc_lattice(r, bbox_min, bbox_max):
 
 def filter_points_inside_solid(scene, points, r):
     """
-    保留所有粒子完全位于物体内部或表面与边界相切的点。
-    条件：signed_distance <= -r （即球心到边界的距离 >= r）
-    确保粒子不穿透模型边界。
+    两阶段过滤：
+    1. 先用 signed distance 快速筛选（保留 signed_distance <= -r 的点）
+    2. 再用射线投射（odd-even rule）验证这些点是否真在内部
     """
     if len(points) == 0:
         return np.zeros((0, 3), dtype=np.float32)
+
+    # === 第一阶段：signed distance 初筛 ===
     signed_distances = scene.compute_signed_distance(
-        o3d.core.Tensor(points)).numpy()
-    return points[signed_distances <= -r]
+        o3d.core.Tensor(points, dtype=o3d.core.Dtype.Float32)
+    ).numpy()
+
+    candidate_mask = signed_distances <= -r
+    candidates = points[candidate_mask]
+    if len(candidates) == 0:
+        return candidates
+
+    # === 第二阶段：射线投射验证（odd-even rule）===
+    # 为每个候选点发射一条射线（沿 +x 方向）
+    rays = np.zeros((len(candidates), 6), dtype=np.float32)
+    rays[:, :3] = candidates  # 射线起点 = 点位置
+    rays[:, 3:] = [1.0, 0.0, 0.0]  # 射线方向：+x
+
+    # 批量投射
+    ans = scene.cast_rays(o3d.core.Tensor(rays))
+    hit_counts = ans['t_hit'].isfinite().numpy().astype(np.int32)
+
+    # 奇数次相交 → 在内部
+    inside_mask = (hit_counts % 2 == 1)
+
+    return candidates[inside_mask]
 
 
 def compute_packing_volumes(r):
@@ -157,16 +179,15 @@ def visualize_points_and_mesh(centers, types, mesh, r):
 
 def main():
     # ==================== 配置参数 ====================
-    # ply_file = r".\xyzrgb_statuette.ply"
-    # ply_file = r".\11.ply"
-    r = 10.0            # 粒子半径
-    packing = "fcc"    # 可选: "hcp" / "scc" / "fcc" / "bcc"
+    ply_file = r".\1.ply"
+    r = 5.0            # 粒子半径
+    packing = "scc"    # 可选: "hcp" / "scc" / "fcc" / "bcc"
     output_vtp = f".\粒子填充_r{r}_{packing}.vtp"
     # ================================================
 
     # 1. 读取并预处理网格
-    # mesh = read_mesh_and_check(ply_file)
-    mesh = o3d.geometry.TriangleMesh.create_sphere(radius=200.0)
+    mesh = read_mesh_and_check(ply_file)
+    # mesh = o3d.geometry.TriangleMesh.create_sphere(radius=200.0)
     # mesh = o3d.geometry.TriangleMesh.create_box(
     #     width=400.0, height=400.0, depth=100.0)
     # mesh = o3d.geometry.TriangleMesh.create_cylinder(
