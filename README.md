@@ -1,27 +1,40 @@
-# Mesh-based-3d-particle-generator
-Here is a 3D mesh-based particle generator for meshless method. Only a standalone python script.
+# Mesh-Based 3D Particle Generator
 
-![滑坡](https://github.com/Darkhell101/Mesh-based-3d-particle-generator/blob/main/model-generated.png)
+A standalone Python script for generating 3D particles inside a surface mesh, designed for meshless (particle-based) numerical methods.
 
-Main file:
-  particle-generator.py
+![Landslide Model](https://github.com/Darkhell101/Mesh-based-3d-particle-generator/blob/main/model-generated.png)
 
-Input:
-  3D mesh (only surface mesh) or internal geometric objects
+## 📄 Main File
+- `particle-generator.py`
 
-Output:
-  Particles surrounded by mesh, particle volume, particle radius, packing type
+## 📥 Input
+- A **3D surface mesh** (e.g., STL, OBJ) **or**
+- Built-in geometric primitives (e.g., box, sphere)
 
-Note:
-  With the help of grok and qwen, various common packing types have achieved. Fcc is the best, complete isotropy, but more particles than scc.
+## 📤 Output
+- Particle coordinates inside the enclosed volume  
+- Per-particle **radius** and **volume**  
+- Selected **packing type** (SC / BCC / FCC)
 
-  More information: https://www.gan.msm.cam.ac.uk/resources/crystalmodels/cubic
+## 🔬 Packing Types
 
-  ![晶体模型](https://github.com/Darkhell101/Mesh-based-3d-particle-generator/blob/main/model-generated.png)
+With help from Grok and Qwen, common cubic crystal packings have been implemented:
 
-Limitations:
-  Accidents (Isolated point) may occur if there are grid points inside.
+| Type | Full Name               | Features                                      |
+|------|-------------------------|-----------------------------------------------|
+| SC   | Simple Cubic            | Low density, anisotropic, fewest particles     |
+| BCC  | Body-Centered Cubic     | Moderate density and isotropy                 |
+| FCC  | Face-Centered Cubic     | **Highest packing density**, fully isotropic — preferred for accuracy (but uses more particles) |
 
-Acknowledgements:
-  partial idea: https://opencax.cn/
-  model data: Tao Pan, Rhino，CQU MD
+> 💡 Learn more about cubic crystal structures:  
+> [Common Cubic Structures – University of Cambridge](https://www.gan.msm.cam.ac.uk/resources/crystalmodels/cubic)
+
+![Crystal Packing Models](https://github.com/Darkhell101/Mesh-based-3d-particle-generator/blob/main/crystal.png)
+
+## ⚠️ Limitations
+- **Isolated particles** may appear if the mesh contains internal vertices or self-intersections.  
+- Ensure the input mesh is **watertight** and **manifold** for reliable results.
+
+## 🙏 Acknowledgements
+- Conceptual inspiration: [OpenCAX](https://opencax.cn/)  
+- Model data & visualization: **Tao Pan** (Rhino, CQU MD)
